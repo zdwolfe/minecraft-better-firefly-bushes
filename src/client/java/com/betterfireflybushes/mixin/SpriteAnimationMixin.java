@@ -79,7 +79,7 @@ public abstract class SpriteAnimationMixin {
                                         if (scField.getType() == int.class) {
                                             scField.setAccessible(true);
                                             frameIndexField = scField;
-                                            LOGGER.info("Using field '{}' as frame index", scField.getName());
+                                            LOGGER.debug("Using field '{}' as frame index", scField.getName());
                                             break;
                                         }
                                     }
@@ -88,7 +88,7 @@ public abstract class SpriteAnimationMixin {
                                 }
                             }
                         } catch (Exception e) {
-                            LOGGER.warn("Could not access frame index field via reflection", e);
+                            LOGGER.debug("Could not access frame index field via reflection", e);
                         }
                     }
 
@@ -103,7 +103,7 @@ public abstract class SpriteAnimationMixin {
                                 }
                             }
                         } catch (Exception e) {
-                            LOGGER.warn("Failed to set frame", e);
+                            LOGGER.debug("Failed to set frame", e);
                         }
                     }
                 }
