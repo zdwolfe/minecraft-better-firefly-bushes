@@ -6,7 +6,6 @@ A Fabric mod for Minecraft 1.21+ that adds time-based control to firefly bush an
 
 - Firefly bushes only animate during configurable time windows (default: night time)
 - Configurable frozen frame when not animating
-- Optional: disable time-based control to always animate
 
 ## Demo
 
