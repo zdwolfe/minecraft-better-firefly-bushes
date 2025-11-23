@@ -8,6 +8,10 @@ A Fabric mod for Minecraft 1.21+ that adds time-based control to firefly bush an
 - Configurable frozen frame when not animating
 - Optional: disable time-based control to always animate
 
+## Demo
+
+https://github.com/user-attachments/assets/9e864ef8-0033-4f30-a9bc-a5d8abc763cc
+
 ## Installation
 
 1. Install [Fabric Loader](https://fabricmc.net/)
@@ -25,13 +29,8 @@ Configuration file: `.minecraft/config/better-firefly-bushes.properties`
 
 ## Building
 
-```bash
-./gradlew build
-./gradlew installMod --dir=/path/to/mods
-```
-
 See [docs/BUILDING.md](docs/BUILDING.md) for details.
 
 ## License
 
-MIT
+See [LICENSE](./LICENSE)
