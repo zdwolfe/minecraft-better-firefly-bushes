@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "better-firefly-bushes",
+  "version": "${version}",
+  "name": "Better Firefly Bushes",
+  "description": "Client-side configuration options for firefly bush animations.",
+  "authors": [
+    "zdwolfe"
+  ],
+  "contact": {
+    "homepage": "https://github.com/zdwolfe/minecraft-better-firefly-bushes"
+  },
+  "license": "MIT",
+  "icon": "assets/better-firefly-bushes/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.betterfireflybushes.BetterFireflyBushesMod"
+    ],
+    "client": [
+      "com.betterfireflybushes.BetterFireflyBushesModClient"
+    ],
+    "modmenu": [
+      "com.betterfireflybushes.config.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "better-firefly-bushes.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": ">=1.21.10",
+    "java": ">=21"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "config.better-fireflies.title": "Better Fireflies Configuration",
+  "config.better-fireflies.category.general": "General Settings",
+  "config.better-fireflies.enableTimeBasedControl": "Enable Time-Based Control",
+  "config.better-fireflies.enableTimeBasedControl.tooltip": "When enabled, firefly bushes will animate only during the configured time window",
+  "config.better-fireflies.animationStartTime": "Animation Start Time",
+  "config.better-fireflies.animationStartTime.tooltip": "Minecraft time of day (0-24000) when fireflies start animating. Default: 12000 (dusk)",
+  "config.better-fireflies.animationEndTime": "Animation End Time",
+  "config.better-fireflies.animationEndTime.tooltip": "Minecraft time of day (0-24000) when fireflies stop animating. Default: 23000 (dawn)",
+  "config.better-fireflies.frozenFrame": "Frozen Frame",
+  "config.better-fireflies.frozenFrame.tooltip": "Firefly bushes have 10 animation frames. This option configures the frame number (0-9) that fireflies display when they are frozen. 0=off, 9=brightest. Default: 0"
+}

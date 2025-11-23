@@ -1,0 +1,174 @@
+plugins {
+	id 'fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+	id 'jacoco'
+	id 'checkstyle'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	maven {
+		name = "TerraformersMC"
+		url = "https://maven.terraformersmc.com/releases/"
+	}
+	maven {
+		name = "Shedaniel"
+		url = "https://maven.shedaniel.me/"
+	}
+	maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+	}
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"better-fireflies" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+	modImplementation("maven.modrinth:cloth-config:${project.cloth_config_version}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	include("maven.modrinth:cloth-config:${project.cloth_config_version}")
+
+	compileOnly "org.projectlombok:lombok:1.18.34"
+	annotationProcessor "org.projectlombok:lombok:1.18.34"
+
+	testImplementation "org.junit.jupiter:junit-jupiter:5.10.3"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+	testImplementation "org.mockito:mockito-inline:5.2.0"
+	testImplementation "org.mockito:mockito-junit-jupiter:5.12.0"
+	testCompileOnly "org.projectlombok:lombok:1.18.34"
+	testAnnotationProcessor "org.projectlombok:lombok:1.18.34"
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": inputs.properties.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	inputs.property "archivesName", project.base.archivesName
+
+	from("LICENSE") {
+		rename { "${it}_${inputs.properties.archivesName}"}
+	}
+}
+
+test {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacoco {
+	toolVersion = "0.8.13"
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			element = 'CLASS'
+			// Exclude Minecraft-dependent classes that cannot be unit tested with Mockito
+			excludes = [
+				'com.betterfireflybushes.BetterFireflyBushesMod',
+				'com.betterfireflybushes.BetterFireflyBushesModClient',
+				'com.betterfireflybushes.animation.AnimationController',
+				'com.betterfireflybushes.config.ModMenuIntegration',
+				'com.betterfireflybushes.mixin.*'
+			]
+			limit {
+				minimum = 0.90 // 90% coverage required for testable classes
+			}
+		}
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification
+
+checkstyle {
+	toolVersion = '10.18.1'
+	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+tasks.withType(Checkstyle) {
+	reports {
+		xml.required = false
+		html.required = true
+	}
+}
+
+abstract class InstallModTask extends DefaultTask {
+	@Option(option = "dir", description = "Target directory for mod installation (required)")
+	@Input
+	abstract Property<String> getTargetDir()
+
+	@TaskAction
+	def install() {
+		if (!targetDir.isPresent()) {
+			throw new GradleException("--dir parameter is required. Usage: ./gradlew installMod --dir=/path/to/mods")
+		}
+		def destination = targetDir.get()
+		project.copy {
+			from project.tasks.remapJar
+			into destination
+		}
+		println "Mod installed to: ${destination}"
+	}
+}
+
+tasks.register('installMod', InstallModTask) {
+	dependsOn build
+	description = 'Builds and installs the mod to a directory (use --dir to specify)'
+	group = 'fabric'
+}
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
+			from components.java
+		}
+	}
+
+	repositories {
+	}
+}
