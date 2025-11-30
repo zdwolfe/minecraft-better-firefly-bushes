@@ -136,6 +136,12 @@ tasks.withType(Checkstyle) {
 	}
 }
 
+tasks.register('release') {
+	description = 'Runs all checks required for pull requests (lint, test, build)'
+	group = 'verification'
+	dependsOn checkstyleMain, checkstyleClient, checkstyleTest, test, build
+}
+
 abstract class InstallModTask extends DefaultTask {
 	@Option(option = "dir", description = "Target directory for mod installation (required)")
 	@Input
