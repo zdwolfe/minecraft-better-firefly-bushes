@@ -17,12 +17,24 @@ public class ModConfig {
     @Getter @Setter private boolean enableTimeBasedControl = true;
     @Getter @Setter private int animationStartTime = 12000;
     @Getter @Setter private int animationEndTime = 23000;
-    @Getter @Setter private int frozenFrame = 0;
+    @Getter private int frozenFrame = 0;
 
     private final Path configPath;
 
     public ModConfig(Path configDir) {
         this.configPath = configDir.resolve(CONFIG_FILE_NAME);
+    }
+
+    public void setFrozenFrame(int frozenFrame) {
+        if (frozenFrame < 0) {
+            LOGGER.warn("frozenFrame value {} is below minimum (0), clamping to 0", frozenFrame);
+            this.frozenFrame = 0;
+        } else if (frozenFrame > 1000) {
+            LOGGER.warn("frozenFrame value {} is above maximum (1000), clamping to 1000", frozenFrame);
+            this.frozenFrame = 1000;
+        } else {
+            this.frozenFrame = frozenFrame;
+        }
     }
 
     /**
@@ -41,7 +53,7 @@ public class ModConfig {
             enableTimeBasedControl = Boolean.parseBoolean(props.getProperty("enableTimeBasedControl", "true"));
             animationStartTime = Integer.parseInt(props.getProperty("animationStartTime", "12000"));
             animationEndTime = Integer.parseInt(props.getProperty("animationEndTime", "23000"));
-            frozenFrame = Integer.parseInt(props.getProperty("frozenFrame", "0"));
+            setFrozenFrame(Integer.parseInt(props.getProperty("frozenFrame", "0")));
             LOGGER.info("Configuration loaded successfully from: {}", configPath);
         } catch (IOException e) {
             LOGGER.error("Failed to load configuration from: {}", configPath, e);

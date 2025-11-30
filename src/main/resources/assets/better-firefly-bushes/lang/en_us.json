@@ -8,5 +8,5 @@
   "config.better-fireflies.animationEndTime": "Animation End Time",
   "config.better-fireflies.animationEndTime.tooltip": "Minecraft time of day (0-24000) when fireflies stop animating. Default: 23000 (dawn)",
   "config.better-fireflies.frozenFrame": "Frozen Frame",
-  "config.better-fireflies.frozenFrame.tooltip": "Firefly bushes have 10 animation frames. This option configures the frame number (0-9) that fireflies display when they are frozen. 0=off, 9=brightest. Default: 0"
+  "config.better-fireflies.frozenFrame.tooltip": "Frame number (0-1000) that fireflies display when frozen. Values over the animation's available frames are clamped. For the default firefly texture: 0=off, 9=brightest. Default: 0"
 }

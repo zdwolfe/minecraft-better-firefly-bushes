@@ -42,7 +42,9 @@ public class ModMenuIntegration implements ModMenuApi {
 
             general.addEntry(entryBuilder.startIntField(Text.literal("Frozen Frame"), config.getFrozenFrame())
                 .setDefaultValue(0)
-                .setTooltip(Text.literal("Frame to display when not animating (0-9)"))
+                .setMin(0)
+                .setMax(1000)
+                .setTooltip(Text.literal("Frame number to display when not animating (0-1000)."))
                 .setSaveConsumer(config::setFrozenFrame)
                 .build());
 

@@ -108,6 +108,28 @@ public abstract class SpriteAnimationMixin {
                     }
                 }
 
+                private int getFrameCount() {
+                    try {
+                        for (Field field : original.getClass().getDeclaredFields()) {
+                            field.setAccessible(true);
+                            Object fieldValue = field.get(original);
+                            if (fieldValue != null && field.getType().getName().contains("class_7764")) {
+                                // This is AnimationMetadata
+                                for (Field metaField : fieldValue.getClass().getDeclaredFields()) {
+                                    metaField.setAccessible(true);
+                                    Object metaValue = metaField.get(fieldValue);
+                                    if (metaValue instanceof java.util.List) {
+                                        return ((java.util.List<?>) metaValue).size();
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.debug("Could not determine frame count", e);
+                    }
+                    return 10;
+                }
+
                 @Override
                 public void tick(GpuTexture texture) {
                     MinecraftClient client = MinecraftClient.getInstance();
@@ -133,9 +155,16 @@ public abstract class SpriteAnimationMixin {
                             // still tick to keep animation state fresh
                             original.tick(texture);
                             int frozenFrame = BetterFireflyBushesMod.getConfig().getFrozenFrame();
-                            setFrame(frozenFrame);
+                            int frameCount = getFrameCount();
+                            // Clamp frozen frame to valid range (0 to frameCount-1)
+                            int clampedFrame = Math.min(frozenFrame, frameCount - 1);
+                            if (clampedFrame != frozenFrame) {
+                                LOGGER.warn("frozenFrame {} exceeds available frames ({}), clamping to {}",
+                                    frozenFrame, frameCount, clampedFrame);
+                            }
+                            setFrame(clampedFrame);
                             if (wasAnimating) {
-                                LOGGER.debug("Transitioning to day - forcing frame to {}", frozenFrame);
+                                LOGGER.debug("Transitioning to day - forcing frame to {}", clampedFrame);
                                 wasAnimating = false;
                             }
                         }
