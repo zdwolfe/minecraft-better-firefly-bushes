@@ -114,4 +114,85 @@ class ModConfigTest {
         assertDoesNotThrow(invalidConfig::save,
             "Save should handle IOException gracefully without throwing");
     }
+
+    @Test
+    void testFrozenFrameValidRange() {
+        config.setFrozenFrame(0);
+        assertEquals(0, config.getFrozenFrame(),
+            "frozenFrame should accept 0");
+
+        config.setFrozenFrame(500);
+        assertEquals(500, config.getFrozenFrame(),
+            "frozenFrame should accept 500");
+
+        config.setFrozenFrame(1000);
+        assertEquals(1000, config.getFrozenFrame(),
+            "frozenFrame should accept 1000");
+    }
+
+    @Test
+    void testFrozenFrameClampsBelowMinimum() {
+        config.setFrozenFrame(-1);
+        assertEquals(0, config.getFrozenFrame(),
+            "frozenFrame should clamp -1 to 0");
+
+        config.setFrozenFrame(-100);
+        assertEquals(0, config.getFrozenFrame(),
+            "frozenFrame should clamp -100 to 0");
+    }
+
+    @Test
+    void testFrozenFrameClampsAboveMaximum() {
+        config.setFrozenFrame(1001);
+        assertEquals(1000, config.getFrozenFrame(),
+            "frozenFrame should clamp 1001 to 1000");
+
+        config.setFrozenFrame(5000);
+        assertEquals(1000, config.getFrozenFrame(),
+            "frozenFrame should clamp 5000 to 1000");
+
+        config.setFrozenFrame(Integer.MAX_VALUE);
+        assertEquals(1000, config.getFrozenFrame(),
+            "frozenFrame should clamp Integer.MAX_VALUE to 1000");
+    }
+
+    @Test
+    void testFrozenFramePersistsClampedValue() throws IOException {
+        config.setFrozenFrame(2000);
+        assertEquals(1000, config.getFrozenFrame(),
+            "frozenFrame should be clamped to 1000");
+
+        config.save();
+        ModConfig loadedConfig = new ModConfig(tempDir);
+        loadedConfig.load();
+
+        assertEquals(1000, loadedConfig.getFrozenFrame(),
+            "Clamped frozenFrame value should be persisted");
+    }
+
+    @Test
+    void testFrozenFrameLoadClampsBadConfigValues() throws IOException {
+        Path configFile = tempDir.resolve("better-firefly-bushes.properties");
+        Properties props = new Properties();
+        props.setProperty("frozenFrame", "5000");
+        props.store(Files.newOutputStream(configFile), "Test config");
+
+        config.load();
+
+        assertEquals(1000, config.getFrozenFrame(),
+            "frozenFrame should clamp value loaded from config file");
+    }
+
+    @Test
+    void testFrozenFrameLoadClampsNegativeConfigValues() throws IOException {
+        Path configFile = tempDir.resolve("better-firefly-bushes.properties");
+        Properties props = new Properties();
+        props.setProperty("frozenFrame", "-50");
+        props.store(Files.newOutputStream(configFile), "Test config");
+
+        config.load();
+
+        assertEquals(0, config.getFrozenFrame(),
+            "frozenFrame should clamp negative value loaded from config file to 0");
+    }
 }

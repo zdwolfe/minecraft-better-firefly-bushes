@@ -24,7 +24,7 @@ Configuration file: `.minecraft/config/better-firefly-bushes.properties`
 - `enableTimeBasedControl` (default: true) - Enable/disable time-based animation control
 - `animationStartTime` (default: 12000) - Minecraft time when animations start (0-24000)
 - `animationEndTime` (default: 23000) - Minecraft time when animations end (0-24000)
-- `frozenFrame` (default: 0) - Frame to display when not animating (0-9)
+- `frozenFrame` (default: 0) - Frame to display when not animating (0-1000, clamped to available frames)
 
 ## Building
 
