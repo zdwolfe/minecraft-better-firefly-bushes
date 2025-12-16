@@ -5,7 +5,7 @@ plugins {
 	id 'checkstyle'
 }
 
-version = project.mod_version
+version = "${mod_version}-${minecraft_version}"
 group = project.maven_group
 
 base {

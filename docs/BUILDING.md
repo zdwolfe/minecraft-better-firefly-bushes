@@ -28,7 +28,7 @@ java -version
 Builds without running tests (faster):
 
 ```bash
-./gradlew build -x test
+sdk env && ./gradlew build -x test
 ```
 
 ## Build Targets
