@@ -4,7 +4,7 @@
   "package": "com.betterfireflybushes.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "SpriteAnimationMixin"
+    "SpriteAnimatorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
