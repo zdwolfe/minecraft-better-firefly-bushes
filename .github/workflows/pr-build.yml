@@ -1,38 +1,29 @@
 name: PR Build
-
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-
 permissions:
   contents: read
   actions: read
   issues: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
       - name: Build with Gradle
         run: ./gradlew build
-
       - name: Run tests
         run: ./gradlew test
-
       - name: Find JAR file
         id: find_jar
         run: |
@@ -43,25 +34,20 @@ jobs:
           fi
           echo "JAR_FILE=$JAR_FILE" >> $GITHUB_OUTPUT
           echo "JAR_NAME=$(basename "$JAR_FILE")" >> $GITHUB_OUTPUT
-
       - name: Compute sha256 of artifact
         id: compute_sha
         run: |
-          # compute sha256 and export as step output
           SHA256=$(sha256sum "${{ steps.find_jar.outputs.JAR_FILE }}" | awk '{print $1}')
           echo "SHA256=$SHA256" >> $GITHUB_OUTPUT
-
       - name: Sanitize PR branch name for artifact
         id: sanitize
         run: |
-          # GITHUB_HEAD_REF exists on pull_request events; fallback to branch or short SHA
           REF="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
           SANITIZED=${REF//\//-}
           if [ -z "$SANITIZED" ]; then
             SANITIZED=$(git rev-parse --short HEAD)
           fi
           echo "SANITIZED_REF=$SANITIZED" >> $GITHUB_OUTPUT
-
       - name: Upload artifact (PR build)
         id: upload
         uses: actions/upload-artifact@v4
@@ -73,7 +59,6 @@ jobs:
           compression-level: 6
           overwrite: false
           include-hidden-files: false
-
       - name: Find artifact download URL for this run
         id: get_artifact
         run: |
@@ -81,21 +66,26 @@ jobs:
           repo=$(echo "${GITHUB_REPOSITORY}" | cut -d'/' -f2)
           run_id=${GITHUB_RUN_ID}
           artifact_name="better-fireflies-pr-${{ steps.sanitize.outputs.SANITIZED_REF }}"
-
-          # Query artifacts for this run
-          resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$owner/$repo/actions/runs/$run_id/artifacts")
-
-          ARTIFACT_URL=$(echo "$resp" | jq -r --arg name "$artifact_name" '.artifacts[] | select(.name == $name) | .archive_download_url')
+          
+          # Retry loop - artifact may not be immediately available
+          for i in {1..5}; do
+            resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$owner/$repo/actions/runs/$run_id/artifacts")
+            ARTIFACT_URL=$(echo "$resp" | jq -r --arg name "$artifact_name" '.artifacts // [] | .[] | select(.name == $name) | .archive_download_url')
+            if [ -n "$ARTIFACT_URL" ] && [ "$ARTIFACT_URL" != "null" ]; then
+              break
+            fi
+            echo "Attempt $i: artifact not ready, waiting..."
+            sleep 5
+          done
+          
           if [ -z "$ARTIFACT_URL" ] || [ "$ARTIFACT_URL" == "null" ]; then
             echo "No artifact found matching name $artifact_name" >&2
             echo "ARTIFACT_URL=" >> $GITHUB_OUTPUT
             exit 1
           fi
-
           echo "ARTIFACT_URL=$ARTIFACT_URL" >> $GITHUB_OUTPUT
-
       - name: Post artifact info to PR
         if: ${{ steps.get_artifact.outputs.ARTIFACT_URL != '' }}
         env:
@@ -107,13 +97,11 @@ jobs:
         run: |
           owner=$(echo "$REPO" | cut -d'/' -f1)
           repo=$(echo "$REPO" | cut -d'/' -f2)
-
           body=$(jq -n --arg pr "$PR_NUMBER" \
                          --arg commit "$COMMIT_SHA" \
                          --arg sha256 "$SHA256" \
                          --arg url "$ARTIFACT_URL" \
                          '{body: ("Built artifact for PR #" + $pr + "\n\nCommit: " + $commit + "\nSHA256: " + $sha256 + "\n\nArtifact (download): " + $url)}')
-
           curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
                -H "Accept: application/vnd.github+json" \
                -d "$body" \
