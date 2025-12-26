@@ -30,3 +30,21 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test
+
+      - name: Find JAR file
+        id: find_jar
+        run: |
+          JAR_FILE=$(find build/libs -name "*.jar" ! -name "*-sources.jar" | head -1)
+          if [ -z "$JAR_FILE" ]; then
+            echo "No JAR found" >&2
+            exit 1
+          fi
+          echo "JAR_FILE=$JAR_FILE" >> $GITHUB_OUTPUT
+          echo "JAR_NAME=$(basename $JAR_FILE)" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact (PR build)
+        uses: actions/upload-artifact@v4
+        with:
+          name: better-fireflies-pr-${{ github.head_ref || github.sha }}
+          path: ${{ steps.find_jar.outputs.JAR_FILE }}
+          retention-days: 30
