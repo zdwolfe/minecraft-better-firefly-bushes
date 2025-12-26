@@ -64,4 +64,4 @@ jobs:
           if-no-files-found: warn
           compression-level: 6
           overwrite: false
-          include-hidden-files: fal
+          include-hidden-files: false
