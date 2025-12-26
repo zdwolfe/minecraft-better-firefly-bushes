@@ -40,11 +40,28 @@ jobs:
             exit 1
           fi
           echo "JAR_FILE=$JAR_FILE" >> $GITHUB_OUTPUT
-          echo "JAR_NAME=$(basename $JAR_FILE)" >> $GITHUB_OUTPUT
+          echo "JAR_NAME=$(basename "$JAR_FILE")" >> $GITHUB_OUTPUT
+
+      - name: Sanitize PR branch name for artifact
+        id: sanitize
+        run: |
+          # GITHUB_HEAD_REF exists on pull_request events; fallback to short SHA if missing
+          REF="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          SANITIZED=${REF//\//-}
+          # if still empty, use short SHA
+          if [ -z "$SANITIZED" ]; then
+            SANITIZED=$(git rev-parse --short HEAD)
+          fi
+          echo "SANITIZED_REF=$SANITIZED" >> $GITHUB_OUTPUT
 
       - name: Upload artifact (PR build)
         uses: actions/upload-artifact@v4
         with:
-          name: better-fireflies-pr-${{ github.head_ref || github.sha }}
+          # safe name (no forward slashes)
+          name: better-fireflies-pr-${{ steps.sanitize.outputs.SANITIZED_REF }}
           path: ${{ steps.find_jar.outputs.JAR_FILE }}
           retention-days: 30
+          if-no-files-found: warn
+          compression-level: 6
+          overwrite: false
+          include-hidden-files: false
